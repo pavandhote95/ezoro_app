@@ -69,7 +69,9 @@ class LoginController extends GetxController {
           box.write('userId', userId);
           box.write('userPoints', userPoints);
           box.write('isLoggedIn', true);
-              box.write('user_type', userType); // ✅ save user_type
+              box.write('user_type', userType); 
+              box.write('user_points', userPoints);
+              // ✅ save user_type
 
           debugPrint("📦 Token: $token");
           debugPrint("🆔 UserId: $userId");

@@ -13,8 +13,7 @@ import '../../edit_profile/views/edit_profile_view.dart';
 class MyProfileView extends GetView<MyProfileController> {
   MyProfileView({super.key});
   final MyProfileController controller = Get.put(MyProfileController());
-    final ExpertUserProfileController userpointcontroller =
-      Get.put(ExpertUserProfileController());
+
 
   @override
   Widget build(BuildContext context) {
@@ -154,20 +153,19 @@ class MyProfileView extends GetView<MyProfileController> {
                     );
                   }),
                   const SizedBox(width: 24),
-             Expanded(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        _buildStatColumn("Posts", controller.totalPosts.value),
-                        Obx(() {
-                          final points =
-                              userpointcontroller.profileData['user_points'] ??
-                                  0;
-                          return _buildStatColumn("Points", points);
-                        }),
-                      ],
-                    ),
-                  ),
+           Expanded(
+  child: Row(
+    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+    children: [
+      _buildStatColumn("Posts", controller.totalPosts.value),
+      Obx(() {
+        final points = controller.userPoints.value;
+        return _buildStatColumn("Points", points);
+      }),
+    ],
+  ),
+),
+
                 ],
               ),
               const SizedBox(height: 16),

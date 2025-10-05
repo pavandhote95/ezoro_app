@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:travel_app2/app/modules/chat_both/views/chat_both_view.dart';
+import 'package:travel_app2/app/modules/experts_profile/views/experts_profile_view.dart';
 import '../../../constants/app_color.dart';
 import '../controllers/user_profile_controller.dart';
-// ✅ ChatBothView import
 
 class UserProfileView extends StatelessWidget {
   const UserProfileView({super.key});
@@ -27,9 +27,8 @@ class UserProfileView extends StatelessWidget {
 
         final profile = controller.profile;
 
-        // 🔹 Safely extract fields
+        // 🔹 Extract fields safely
         final String name = profile['name'] ?? "N/A";
-
         final String rawImage = profile['image_url'] ?? "";
         final String profileImage = rawImage.isNotEmpty
             ? (rawImage.startsWith('http')
@@ -52,10 +51,11 @@ class UserProfileView extends StatelessWidget {
         final String language =
             profile['travel_detail']?['language'] ?? "Not specified";
         final String travelType =
-            profile['travel_detail']?['travel_type']?.toString() ??
-                "Not specified";
+            profile['travel_detail']?['travel_type']?.toString() ?? "Not specified";
         final String travelMode =
             profile['travel_detail']?['travel_mode'] ?? "Not specified";
+
+        final String userType = profile['user_type'] ?? 'user';
 
         // 🔹 Stats
         final int posts = (profile['posts'] as List<dynamic>?)?.length ?? 0;
@@ -73,27 +73,21 @@ class UserProfileView extends StatelessWidget {
                     CircleAvatar(
                       radius: 50,
                       backgroundColor: Colors.grey.shade800,
-                      child: profileImage.isNotEmpty
-                          ? ClipOval(
-                              child: Image.network(
-                                profileImage,
-                                fit: BoxFit.cover,
-                                width: 100,
-                                height: 100,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return const Icon(
-                                    Icons.person,
-                                    size: 50,
-                                    color: Colors.white70,
-                                  );
-                                },
-                              ),
-                            )
-                          : const Icon(
+                      child: ClipOval(
+                        child: Image.network(
+                          profileImage,
+                          fit: BoxFit.cover,
+                          width: 100,
+                          height: 100,
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Icon(
                               Icons.person,
                               size: 50,
                               color: Colors.white70,
-                            ),
+                            );
+                          },
+                        ),
+                      ),
                     ),
                     const SizedBox(height: 16),
                     Text(
@@ -107,52 +101,54 @@ class UserProfileView extends StatelessWidget {
                     const SizedBox(height: 8),
                     Text(
                       location,
-                      style: GoogleFonts.inter(
-                        fontSize: 16,
-                        color: Colors.grey,
-                      ),
+                      style: GoogleFonts.inter(fontSize: 16, color: Colors.grey),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       "Joined: $joinedDate",
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        color: Colors.grey,
-                      ),
+                      style: GoogleFonts.inter(fontSize: 14, color: Colors.grey),
                     ),
                     const SizedBox(height: 16),
 
-                    // ✅ Message Button
-                ElevatedButton.icon(
-  style: ElevatedButton.styleFrom(
-    backgroundColor: AppColors.buttonBg,
-    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(12),
-    ),
-  ),
-  onPressed: () {
-    Get.to(() => ChatBothView(
-          currentUser: controller.currentUserId.toString(), // ✅ Now works
-          otherUser: name,
-          otherUserImage: profileImage,
-          otherUserId: profile['id'].toString(),
-          chatId:
-              "${controller.currentUserId}_${profile['id']}", // unique chat id
-          isExpert: false,
-        ));
-  },
-  icon: const Icon(Icons.message, color: Colors.white),
-  label: Text(
-    "Message",
-    style: GoogleFonts.openSans(
-      fontSize: 16,
-      fontWeight: FontWeight.w600,
-      color: Colors.white,
-    ),
-  ),
-),
-
+                    // ✅ Message Button with conditional navigation
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.buttonBg,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: () {
+               if (userType.toLowerCase() == 'expert') {
+  // Navigate to ExpertProfile page
+  Get.to(() => ExpertsProfileView(
+        expertId: profile['id'],         // Use the profile ID
+        expertuserId: profile['user_id'] ?? profile['id'], // Fallback if user_id missing
+      ));
+} else {
+  // Navigate to ChatBothView
+  Get.to(() => ChatBothView(
+        currentUser: controller.currentUserId.toString(),
+        otherUser: name,
+        otherUserImage: profileImage,
+        otherUserId: profile['id'].toString(),
+        chatId: "${controller.currentUserId}_${profile['id']}",
+        isExpert: false,
+      ));
+}
+                      },
+                      icon: const Icon(Icons.message, color: Colors.white),
+                      label: Text(
+                        "Message",
+                        style: GoogleFonts.openSans(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),

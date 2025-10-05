@@ -63,40 +63,31 @@ class _TalkToTravellersChatViewState extends State<TalkToTravellersChatView> {
     super.dispose();
   }
 
-void _sendMessage() async {
-  final text = msgController.text.trim();
-  if (text.isEmpty) return;
+  void _sendMessage() async {
+    final text = msgController.text.trim();
+    if (text.isEmpty) return;
 
-  try {
-    controller.isSending.value = true;
+    try {
+      controller.isSending.value = true;
 
-    if (userType == "expert") {
-      // 🟢 If normal user → send message to expert
+      // Send message to expert
       await controller.sendMessageToExpert(
         receiverId: widget.travellerId,
         message: text,
       );
-    } else {
-      // 🟣 If expert → send message to user
-      await controller.sendMessageToExpert(
-        receiverId: widget.travellerId,
-        message: text,
-      );
-    }
 
-    msgController.clear();
+      msgController.clear();
 
-    // ✅ Check for any API error messages
-    if (chatWithController.lastErrorMessage.value.isNotEmpty) {
-      _showMessageErrorDialog(chatWithController.lastErrorMessage.value);
+      // Check for any API error messages
+      // if (chatWithController.lastErrorMessage.value.isNotEmpty) {
+      //   _showMessageErrorDialog(chatWithController.lastErrorMessage.value);
+      // }
+    } catch (e) {
+      _showMessageErrorDialog("Failed to send message: $e");
+    } finally {
+      controller.isSending.value = false;
     }
-  } catch (e) {
-    _showMessageErrorDialog("Failed to send message: $e");
-  } finally {
-    controller.isSending.value = false;
   }
-}
-
 
   void _showMessageErrorDialog(String message) {
     Get.defaultDialog(
@@ -151,7 +142,6 @@ void _sendMessage() async {
               hintText: "Enter amount",
               hintStyle: TextStyle(color: Colors.grey.shade400),
               filled: true,
-
               fillColor: Colors.grey.shade800,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -196,7 +186,6 @@ void _sendMessage() async {
     );
   }
 
-
   void _openRazorpayPayment(String amount) {
     var options = {
       'key': 'rzp_test_RIcVT1kjDlJh9q',
@@ -228,13 +217,6 @@ void _sendMessage() async {
       expertId: travellerId,
       amount: amountController.text.trim(),
     );
-
-    // Get.snackbar(
-    //   'Payment Successful',
-    //   'Payment ID: $paymentId',
-    //   backgroundColor: Colors.green.shade600,
-    //   colorText: Colors.white,
-    // );
   }
 
   void _handlePaymentError(PaymentFailureResponse response) {
@@ -300,7 +282,7 @@ void _sendMessage() async {
                       height: 120,
                       width: 120,
                       child: Lottie.asset(
-                        'assets/lottie/Loading.json', // ✅ apna asset path yaha do
+                        'assets/lottie/Loading.json',
                         repeat: true,
                         animate: true,
                       ),
@@ -308,7 +290,17 @@ void _sendMessage() async {
                   );
                 }
                 if (controller.messages.isEmpty) {
-                  return const Center(child: Text("No messages yet"));
+                             return Center(
+                    child: SizedBox(
+                      height: 120,
+                      width: 120,
+                      child: Lottie.asset(
+                        'assets/lottie/Loading.json',
+                        repeat: true,
+                        animate: true,
+                      ),
+                    ),
+                  );
                 }
                 return ListView.builder(
                   controller: controller.scrollController,
@@ -320,15 +312,16 @@ void _sendMessage() async {
                     String time = "";
                     try {
                       if (msg["created_at"] != null) {
-                        time = DateFormat(
-                          "hh:mm a",
-                        ).format(DateTime.parse(msg["created_at"]));
+                        // Parse UTC timestamp and convert to local time
+                        final dateTime = DateTime.parse(msg["created_at"]).toLocal();
+                        time = DateFormat("hh:mm a").format(dateTime);
                       }
-                    } catch (_) {}
+                    } catch (e) {
+                      // Fallback to empty string if parsing fails
+                      time = "";
+                    }
                     return Align(
-                      alignment: isMe
-                          ? Alignment.centerRight
-                          : Alignment.centerLeft,
+                      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
                       child: Container(
                         margin: const EdgeInsets.symmetric(vertical: 4),
                         padding: const EdgeInsets.all(12),
@@ -345,14 +338,16 @@ void _sendMessage() async {
                               msg["message"] ?? "",
                               style: const TextStyle(color: Colors.white),
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              time,
-                              style: const TextStyle(
-                                color: Colors.white70,
-                                fontSize: 10,
+                            if (time.isNotEmpty) ...[
+                              const SizedBox(height: 4),
+                              Text(
+                                time,
+                                style: const TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 10,
+                                ),
                               ),
-                            ),
+                            ],
                           ],
                         ),
                       ),

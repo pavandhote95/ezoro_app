@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:swipe_cards/swipe_cards.dart';
+import 'package:travel_app2/app/constants/my_toast.dart';
 import 'package:travel_app2/app/modules/home/views/Tabes/comment_model.dart';
 import 'package:travel_app2/app/services/api_service.dart';
 import '../../../models/post_model.dart';
@@ -215,8 +216,7 @@ void toggleReplies(int commentId) {
       debugPrint("📥 addComment body: ${response.body}");
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        Get.snackbar("Success", "Comment added successfully",
-            backgroundColor: Colors.green, colorText: Colors.white);
+       CustomToast.showSuccess(Get.context!, "Comment added successfully");
         await fetchComments(postId);
       } else {
         Get.snackbar("Error", "Failed to add comment",

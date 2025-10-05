@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:travel_app2/app/constants/app_color.dart';
 
 
 class CustomToast {
@@ -33,7 +34,7 @@ class CustomToast {
     margin: const EdgeInsets.symmetric(horizontal: 130, vertical: 22,),
     duration: const Duration(seconds: 2),
     shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(30),
+      borderRadius: BorderRadius.circular(8),
     ),
   ),
 );
@@ -119,7 +120,7 @@ class CustomToast {
     show(
       context,
       message: message,
-      backgroundColor: Colors.green,
+      backgroundColor: AppColors.buttonBg,
       textColor: Colors.white,
       isTop: isTop,
     );

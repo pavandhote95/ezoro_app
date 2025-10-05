@@ -202,13 +202,20 @@ class DmView extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 4),
-                      Text(
-                        user.lastMessage ?? "Tap to chat",
-                        style: GoogleFonts.inter(
-                          fontSize: 14,
-                          color: Colors.grey.shade500,
-                        ),
-                      ),
+                     Text(
+  user.lastMessage != null
+      ? user.lastMessage!
+          .split(' ')
+          .take(10)
+          .join(' ') +
+          (user.lastMessage!.split(' ').length > 10 ? '...' : '')
+      : "Tap to chat",
+  style: GoogleFonts.inter(
+    fontSize: 14,
+    color: Colors.grey.shade500,
+  ),
+),
+
                     ],
                   ),
                 ),
@@ -225,7 +232,7 @@ class DmView extends StatelessWidget {
     );
   }
 
-  /// 🔹 Avatar with fallback initials
+  /// 🔹 Avatar with fallback initials2
   Widget _buildAvatar(String? imageUrl, String name) {
     if (imageUrl != null && imageUrl.isNotEmpty) {
       return CircleAvatar(

@@ -99,14 +99,11 @@ class _ChatBothViewState extends State<ChatBothView> {
       body: Column(
         children: [
           // ✅ Messages List
-      Expanded(
-  child: Obx(() {
-    final isLoading = controller.isLoading.value;
-    
-    final messages = controller.messages;
-
-     if (controller.isLoading.value) {
-           return Center(
+          Expanded(
+            child: Obx(() {
+              final messages = controller.messages;
+              if (messages.isEmpty) {
+                 return Center(
             child: SizedBox(
               height: 120,
               width: 120,
@@ -118,21 +115,7 @@ class _ChatBothViewState extends State<ChatBothView> {
               ),
             ),
           );
-        }
-    if (messages.isEmpty) {
-        return Center(
-            child: SizedBox(
-              height: 120,
-              width: 120,
-              child: Lottie.asset(
-                'assets/lottie/Loading.json', // ✅ apna asset path yaha do
-                repeat: true,
-                animate: true,
-          
-              ),
-            ),
-          );
-    }
+              }
 
               return ListView.builder(
                 controller: _scrollController,
@@ -273,7 +256,6 @@ class _ChatBothViewState extends State<ChatBothView> {
       ),
     );
   }
-
 
   Widget _buildAvatar(String? imageUrl, String name) {
     if (imageUrl != null && imageUrl.isNotEmpty && imageUrl.startsWith("http")) {

@@ -102,13 +102,16 @@ class TravellersView extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 4),
-                      Text(
-                        traveller.lastMessage ?? "Tap to chat",
-                        style: GoogleFonts.inter(
-                          fontSize: 14,
-                          color: Colors.grey.shade500,
-                        ),
-                      ),
+                    Text(
+  traveller.lastMessage != null && traveller.lastMessage!.length > 20
+      ? "${traveller.lastMessage!.substring(0, 5)}..."
+      : (traveller.lastMessage ?? "Tap to chat"),
+  style: GoogleFonts.inter(
+    fontSize: 14,
+    color: Colors.grey.shade500,
+  ),
+),
+
                     ],
                   ),
                 ),

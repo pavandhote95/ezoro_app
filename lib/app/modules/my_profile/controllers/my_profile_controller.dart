@@ -14,6 +14,7 @@ class MyProfileController extends GetxController {
   final RxString firstname = ''.obs;
   final RxString role = ''.obs;
   final RxString profileImage = ''.obs;
+    var userPoints = 0.obs;
 
   final RxInt totalPosts = 0.obs;
   final RxInt totalAnswers = 0.obs;
@@ -80,6 +81,7 @@ class MyProfileController extends GetxController {
         firstname.value = user['first_name'] ?? '';
         role.value = user['role'] ?? 'Traveler';
         profileImage.value = user['image_url'] ?? '';
+          userPoints.value = box.read('userPoints') ?? 0;
 
         cachedProfileData = user; // Store for EditProfileView
 

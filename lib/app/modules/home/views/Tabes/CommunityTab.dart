@@ -349,14 +349,18 @@ class _CommunityTabState extends State<CommunityTab>
           ),
         ),
         const SizedBox(width: 8),
-        Text(
-          '${post.likesCount} Likes',
-          style: GoogleFonts.inter(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: AppColors.buttonBg,
-          ),
-        ),
+Text(
+  post.likesCount > 0
+      ? '${post.likesCount} Likes'
+      : 'Like',
+  style: GoogleFonts.inter(
+    fontSize: 14,
+    fontWeight: FontWeight.w500,
+    color: AppColors.buttonBg,
+  ),
+),
+
+
       ],
     ),
    const SizedBox(width: 8),
@@ -744,6 +748,9 @@ Text(
   }
 
 Widget _buildReplyBottomSheet(
+
+
+
     BuildContext context, int postId, int parentId, String userName) {
   final replyController = TextEditingController(text: '@$userName ');
 

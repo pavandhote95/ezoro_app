@@ -32,7 +32,7 @@ class ExpertUserProfileController extends GetxController {
     try {
       isLoading.value = true;
       final token = box.read('token') ?? "";
-      print("📌 Token used: $token");
+   
 
       final response = await http.get(
         Uri.parse(
@@ -43,8 +43,8 @@ class ExpertUserProfileController extends GetxController {
         },
       );
 
-      print("📩 API Status Code: ${response.statusCode}");
-      print("📩 API Raw Response: ${response.body}");
+      // print("📩 API Status Code: ${response.statusCode}");
+      // print("📩 API Raw Response: ${response.body}");
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -59,17 +59,17 @@ class ExpertUserProfileController extends GetxController {
 
           profileData.value = newData;
           profileData.refresh();
-          print("🎯 Profile Data Updated: ${profileData.value}");
+          // print("🎯 Profile Data Updated: ${profileData.value}");
         } else {
-          print("❌ API Error: ${data["message"]}");
-          Get.snackbar("Error", data["message"] ?? "Something went wrong");
+       
+    
         }
       } else {
-        print("❌ Failed with status: ${response.statusCode}");
+     
       }
     } catch (e) {
-      print("🔥 Exception: $e");
-      Get.snackbar("Error", e.toString());
+
+  
     } finally {
       isLoading.value = false;
     }

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
+import 'package:travel_app2/app/constants/my_toast.dart';
 import 'package:travel_app2/app/modules/home/controllers/community_controller.dart';
 import 'package:travel_app2/app/services/api_service.dart';
 
@@ -103,8 +104,8 @@ class BottomSheetQuestionsController extends GetxController {
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
         Get.back();
-        Get.snackbar('Success', 'Post created successfully',
-            backgroundColor: Colors.green, colorText: Colors.white);
+  CustomToast.showErrorHome(Get.context!, "Post created successfully!");
+
 
         try {
           await communityController.fetchPosts();
