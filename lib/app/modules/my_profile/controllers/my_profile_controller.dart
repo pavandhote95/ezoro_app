@@ -7,22 +7,25 @@ import 'package:travel_app2/app/routes/app_pages.dart';
 import 'package:travel_app2/app/services/api_service.dart';
 
 class MyProfileController extends GetxController {
-  final box = GetStorage();
+  final GetStorage box = GetStorage();
   final ApiService apiService = Get.find<ApiService>();
 
+  // User info
   final RxString username = ''.obs;
   final RxString firstname = ''.obs;
   final RxString role = ''.obs;
   final RxString profileImage = ''.obs;
-    var userPoints = 0.obs;
+  final RxInt userPoints = 0.obs;
 
+  // Posts info
   final RxInt totalPosts = 0.obs;
   final RxInt totalAnswers = 0.obs;
   final RxList<Map<String, dynamic>> userPosts = <Map<String, dynamic>>[].obs;
 
-  final isLoading = false.obs;
+  // Loading state
+  final RxBool isLoading = false.obs;
 
-  // Cache for passing to EditProfile
+  // Cache for EditProfile
   Map<String, dynamic> cachedProfileData = {};
 
   @override
@@ -30,17 +33,18 @@ class MyProfileController extends GetxController {
     super.onInit();
     fetchProfile();
   }
-  
-  Future<void> deletePost(int postId) async {
-    try {
-      isLoading.value = true;
 
-      final token = box.read('token') ?? ''; // Read token from GetStorage
+  /// Delete a post by ID
+  Future<void> deletePost(int postId) async {
+    isLoading.value = true;
+
+    try {
+      final token = box.read('token') ?? '';
 
       final response = await http.post(
         Uri.parse('https://kotiboxglobaltech.com/travel_app/api/post-delete'),
         headers: {
-          'Authorization': 'Bearer $token', // send token in headers
+          'Authorization': 'Bearer $token',
           'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: {'id': postId.toString()},
@@ -49,12 +53,19 @@ class MyProfileController extends GetxController {
       final data = json.decode(response.body);
 
       if (data['status'] == true) {
-        Get.snackbar("Success", "Post deleted successfully",
-            snackPosition: SnackPosition.BOTTOM);
+        Get.snackbar(
+          "Success",
+          "Post deleted successfully",
+          snackPosition: SnackPosition.BOTTOM,
+        );
         userPosts.removeWhere((post) => post['id'] == postId);
+        totalPosts.value = userPosts.length;
       } else {
-        Get.snackbar("Error", data['message'] ?? "Failed to delete post",
-            snackPosition: SnackPosition.BOTTOM);
+        Get.snackbar(
+          "Error",
+          data['message'] ?? "Failed to delete post",
+          snackPosition: SnackPosition.BOTTOM,
+        );
       }
     } catch (e) {
       Get.snackbar("Error", e.toString(), snackPosition: SnackPosition.BOTTOM);
@@ -63,12 +74,14 @@ class MyProfileController extends GetxController {
     }
   }
 
-
+  /// Fetch user profile from backend
   Future<void> fetchProfile() async {
     final token = box.read('token');
     final userId = box.read('userId');
 
     if (token == null || userId == null) return;
+
+    isLoading.value = true;
 
     try {
       final response = await apiService.getProfileById(token, userId);
@@ -77,14 +90,16 @@ class MyProfileController extends GetxController {
       if (response.statusCode == 200 && data['status'] == true) {
         final user = data['data'];
 
+        // Update user info
         username.value = user['name'] ?? '';
         firstname.value = user['first_name'] ?? '';
         role.value = user['role'] ?? 'Traveler';
         profileImage.value = user['image_url'] ?? '';
-          userPoints.value = box.read('userPoints') ?? 0;
+        userPoints.value = box.read('userPoints') ?? 0;
 
-        cachedProfileData = user; // Store for EditProfileView
+        cachedProfileData = user; // Cache for EditProfileView
 
+        // Update user posts
         if (user['posts'] != null) {
           userPosts.assignAll(
             List<Map<String, dynamic>>.from(user['posts']).map((post) {
@@ -104,45 +119,48 @@ class MyProfileController extends GetxController {
           totalPosts.value = userPosts.length;
         }
       } else {
-        CustomToast.showError(Get.context!, data['message'] ?? 'Failed to load profile');
+        CustomToast.showError(
+            Get.context!, data['message'] ?? 'Failed to load profile');
       }
     } catch (e) {
       CustomToast.showError(Get.context!, 'Profile fetch error: $e');
+    } finally {
+      isLoading.value = false;
     }
   }
-void logoutUser() async {
-  final token = box.read('token');
-  if (token == null) {
-    // Already logged out
-    Get.offAllNamed(Routes.LOGIN);
-    return;
-  }
 
-  isLoading.value = true;
+  /// Logout user
+  Future<void> logoutUser() async {
+    final token = box.read('token');
 
-  try {
-    final response = await apiService.logoutUser(token);
-
-    if (response.statusCode == 200) {
-      // Clear all storage
-      await box.erase();
-
-      // Show toast
-      CustomToast.showSuccess(Get.context!, 'Logout successful');
-
-      // Navigate to login safely
+    if (token == null) {
+      // Already logged out
       Get.offAllNamed(Routes.LOGIN);
-    } else {
-      CustomToast.showError(
-        Get.context!, 
-        'Logout failed: ${response.statusCode}'
-      );
+      return;
     }
-  } catch (e) {
-    CustomToast.showError(Get.context!, 'Logout error: $e');
-  } finally {
-    isLoading.value = false;
-  }
-}
 
+    isLoading.value = true;
+
+    try {
+      final response = await apiService.logoutUser(token);
+
+      if (response.statusCode == 200) {
+        // Clear all storage
+        await box.erase();
+
+        // Show success toast
+        CustomToast.showSuccess(Get.context!, 'Logout successful');
+
+        // Navigate to login
+        Get.offAllNamed(Routes.LOGIN);
+      } else {
+        CustomToast.showError(
+            Get.context!, 'Logout failed: ${response.statusCode}');
+      }
+    } catch (e) {
+      CustomToast.showError(Get.context!, 'Logout error: $e');
+    } finally {
+      isLoading.value = false;
+    }
+  }
 }
