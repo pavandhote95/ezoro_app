@@ -10,13 +10,12 @@ import '../controllers/expert_controller.dart';
 // ignore: must_be_immutable
 class ExpertView extends GetView<ExpertController> {
   ExpertController controller = Get.put(ExpertController());
-  final ExpertsProfileController profileController = Get.put(ExpertsProfileController());
-
+  final ExpertsProfileController profileController =
+      Get.put(ExpertsProfileController());
 
   @override
   Widget build(BuildContext context) {
     final double screenWidth = MediaQuery.of(context).size.width;
-
 
     return Scaffold(
       backgroundColor: AppColors.mainBg,
@@ -27,21 +26,19 @@ class ExpertView extends GetView<ExpertController> {
         elevation: 1,
         centerTitle: true,
         actions: [
-               Padding(
-                 padding: const EdgeInsets.only(right:20.0),
-                 child: InkWell(
-                  onTap: () {
-  Get.to(DmView());
-                  },
-                  child: Image.asset(
-                    'assets/icons/telegram.png',
-                    height: 32,
-                    width: 32,
-                    fit: BoxFit.contain,
-                    color: AppColors.buttonBg,
-                  ),
-                               ),
-               ),
+          Padding(
+            padding: const EdgeInsets.only(right: 20.0),
+            child: InkWell(
+              onTap: () => Get.to(DmView()),
+              child: Image.asset(
+                'assets/icons/telegram.png',
+                height: 32,
+                width: 32,
+                fit: BoxFit.contain,
+                color: AppColors.buttonBg,
+              ),
+            ),
+          ),
         ],
       ),
       body: Obx(() {
@@ -61,7 +58,7 @@ class ExpertView extends GetView<ExpertController> {
                 decoration: InputDecoration(
                   hintText: "Search experts...",
                   hintStyle: const TextStyle(color: Colors.white70),
-                  prefixIcon: const Icon(Icons  .search, color: Colors.white70),
+                  prefixIcon: const Icon(Icons.search, color: Colors.white70),
                   filled: true,
                   fillColor: AppColors.cardBg,
                   border: OutlineInputBorder(
@@ -72,7 +69,7 @@ class ExpertView extends GetView<ExpertController> {
               ),
             ),
 
-            // 🟢 Experts Grid OR Empty Text
+            // 🟢 Experts Grid
             Expanded(
               child: controller.experts.isEmpty
                   ? const Center(
@@ -118,13 +115,19 @@ class ExpertCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final imageUrl = (expert['image'] != null && expert['image'].toString().isNotEmpty)
+    final imageUrl = (expert['image'] != null &&
+            expert['image'].toString().isNotEmpty)
         ? expert['image']
-        : "https://via.placeholder.com/150"; // 🔄 fallback
+        : "https://via.placeholder.com/150";
+
+    // ✅ Use average_rating instead of rating
+    final rating = double.tryParse(expert['average_rating']?.toString() ?? "0") ?? 0.0;
+    final fullStars = rating.floor();
+    final hasHalfStar = (rating - fullStars) >= 0.5;
 
     return GestureDetector(
       onTap: () {
-           print("🟢 Selected Expert ID: ${expert['user_id']}");
+        print("🟢 Selected Expert ID: ${expert['user_id']}");
         Get.to(() => ExpertsProfileView(
               expertId: expert['id'],
               expertuserId: expert['user_id'],
@@ -141,6 +144,7 @@ class ExpertCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              // 🖼️ Expert Image
               ClipRRect(
                 borderRadius: BorderRadius.circular(screenWidth * 0.08),
                 child: Image.network(
@@ -151,7 +155,9 @@ class ExpertCard extends StatelessWidget {
                 ),
               ),
               SizedBox(height: screenWidth * 0.03),
-               Text(
+
+              // 🧑‍💼 Expert Name
+              Text(
                 expert['expert_name'] ?? "",
                 textAlign: TextAlign.center,
                 overflow: TextOverflow.ellipsis,
@@ -161,7 +167,39 @@ class ExpertCard extends StatelessWidget {
                   color: Colors.white,
                 ),
               ),
-              SizedBox(height: screenWidth * 0.03),
+
+              // ⭐ Rating Section (dynamic stars + number)
+              SizedBox(height: screenWidth * 0.01),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Wrap(
+                    spacing: 1.5,
+                    children: List.generate(5, (index) {
+                      if (index < fullStars) {
+                        return const Icon(Icons.star,
+                            color: Colors.amber, size: 15);
+                      } else if (index == fullStars && hasHalfStar) {
+                        return const Icon(Icons.star_half,
+                            color: Colors.amber, size: 15);
+                      } else {
+                        return const Icon(Icons.star_border,
+                            color: Colors.amber, size: 15);
+                      }
+                    }),
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    rating.toStringAsFixed(1),
+                    style: const TextStyle(
+                        color: Colors.white70, fontSize: 12),
+                  ),
+                ],
+              ),
+
+              SizedBox(height: screenWidth * 0.02),
+
+              // 🏷️ Title
               Text(
                 expert['title'] ?? "",
                 textAlign: TextAlign.center,
@@ -172,15 +210,8 @@ class ExpertCard extends StatelessWidget {
                   color: Colors.white,
                 ),
               ),
-              // Text(
-              //   expert['sub_title'] ?? "",
-              //   textAlign: TextAlign.center,
-              //   overflow: TextOverflow.ellipsis,
-              //   style: GoogleFonts.poppins(
-              //     fontSize: screenWidth * 0.03,
-              //     color: Colors.white70,
-              //   ),
-              // ),
+
+              // 📍 Location
               Text(
                 expert['location'] ?? "",
                 textAlign: TextAlign.center,
@@ -190,6 +221,8 @@ class ExpertCard extends StatelessWidget {
                   color: Colors.white54,
                 ),
               ),
+
+              // 🌐 Languages
               SizedBox(height: screenWidth * 0.01),
               Text(
                 (expert['language'] as List? ?? [])
@@ -202,9 +235,11 @@ class ExpertCard extends StatelessWidget {
                   color: Colors.white54,
                 ),
               ),
+
+              // 💰 Price
               SizedBox(height: screenWidth * 0.015),
               Text(
-                "₹${expert['price']}/day",
+                "₹${expert['price']}/itinerary",
                 style: GoogleFonts.poppins(
                   fontSize: screenWidth * 0.032,
                   fontWeight: FontWeight.bold,
