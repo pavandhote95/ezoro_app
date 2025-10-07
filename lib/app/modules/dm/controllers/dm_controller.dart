@@ -16,7 +16,7 @@ class DmController extends GetxController {
   void onInit() {
     super.onInit();
     fetchUsers();
-    fetchTravellers(); // Fetch travellers dynamically
+    fetchTravellers();
   }
 
   /// Fetch regular users
@@ -38,8 +38,12 @@ class DmController extends GetxController {
       if (response.statusCode == 200) {
         final jsonBody = jsonDecode(response.body);
         if (jsonBody['status'] == true) {
-          final List data = jsonBody['data'];
-          users.value = data.map((e) => UserModel.fromJson(e)).toList();
+          final data = jsonBody['data'];
+          if (data != null && data is List) {
+            users.value = data.map((e) => UserModel.fromJson(e)).toList();
+          } else {
+            users.clear();
+          }
         }
       } else {
         Get.snackbar('Error', 'Failed to fetch chat users');
@@ -70,8 +74,12 @@ class DmController extends GetxController {
       if (response.statusCode == 200) {
         final jsonBody = jsonDecode(response.body);
         if (jsonBody['status'] == true) {
-          final List data = jsonBody['data'];
-          travellers.value = data.map((e) => UserModel.fromJson(e)).toList();
+          final data = jsonBody['data'];
+          if (data != null && data is List) {
+            travellers.value = data.map((e) => UserModel.fromJson(e)).toList();
+          } else {
+            travellers.clear();
+          }
         }
       } else {
         Get.snackbar('Error', 'Failed to fetch travellers');

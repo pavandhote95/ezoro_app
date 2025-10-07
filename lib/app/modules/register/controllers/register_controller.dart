@@ -99,6 +99,8 @@ class RegisterController extends GetxController {
   void onClose() {
     nameController.dispose();
     emailOrPhoneController.dispose();
+
+    
     passwordController.dispose();
     super.onClose();
   }

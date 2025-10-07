@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:travel_app2/app/modules/chat_both/views/chat_both_view.dart';
 import 'package:travel_app2/app/modules/experts_profile/views/experts_profile_view.dart';
 import '../../../constants/app_color.dart';
@@ -12,6 +13,10 @@ class UserProfileView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final UserProfileController controller = Get.put(UserProfileController());
+    String joinedDate = "2025-10-07T14:34:00Z"; // example from API
+DateTime parsedDate = DateTime.parse(joinedDate);
+String formattedDate = DateFormat('dd MMM yyyy').format(parsedDate); // 07 Oct 2025
+
 
     return Scaffold(
       backgroundColor: AppColors.mainBg,
@@ -104,10 +109,11 @@ class UserProfileView extends StatelessWidget {
                       style: GoogleFonts.inter(fontSize: 16, color: Colors.grey),
                     ),
                     const SizedBox(height: 8),
-                    Text(
-                      "Joined: $joinedDate",
-                      style: GoogleFonts.inter(fontSize: 14, color: Colors.grey),
-                    ),
+          Text(
+  "Joined: $formattedDate",
+  style: GoogleFonts.inter(fontSize: 14, color: Colors.grey),
+),
+
                     const SizedBox(height: 16),
 
                     // ✅ Message Button with conditional navigation

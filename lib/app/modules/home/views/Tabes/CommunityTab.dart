@@ -229,14 +229,15 @@ class _CommunityTabState extends State<CommunityTab>
                                 ),
                               ],
                             ),
-                            Text(
-                              '${post.location ?? " "} · ${post.createdAt != null ? "${post.createdAt!.year}-${post.createdAt!.month.toString().padLeft(2, '0')}-${post.createdAt!.day.toString().padLeft(2, '0')}" : ""}',
-                              style: GoogleFonts.inter(
-                                fontWeight: FontWeight.w400,
-                                fontSize: 14,
-                                color: Colors.grey.shade500,
-                              ),
-                            ),
+                           Text(
+  '${post.location != null ? post.location!.split(' ').take(10).join(' ') : " "} · ${post.createdAt != null ? "${post.createdAt!.year}-${post.createdAt!.month.toString().padLeft(2, '0')}-${post.createdAt!.day.toString().padLeft(2, '0')}" : ""}',
+  style: GoogleFonts.inter(
+    fontWeight: FontWeight.w400,
+    fontSize: 14,
+    color: Colors.grey.shade500,
+  ),
+),
+
                           ],
                         ),
                       ),

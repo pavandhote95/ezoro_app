@@ -248,9 +248,9 @@ Future<void> saveDeviceToken(int userId) async {
 
   @override
   void onClose() {
-    emailOrPhoneController.dispose();
-    passwordController.dispose();
-    phoneController.dispose();
+    // emailOrPhoneController.dispose();
+    // passwordController.dispose();
+    // phoneController.dispose();
     for (var c in otpControllers) {
       c.dispose();
     }
