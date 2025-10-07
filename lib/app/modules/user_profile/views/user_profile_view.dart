@@ -13,10 +13,6 @@ class UserProfileView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final UserProfileController controller = Get.put(UserProfileController());
-    String joinedDate = "2025-10-07T14:34:00Z"; // example from API
-DateTime parsedDate = DateTime.parse(joinedDate);
-String formattedDate = DateFormat('dd MMM yyyy').format(parsedDate); // 07 Oct 2025
-
 
     return Scaffold(
       backgroundColor: AppColors.mainBg,
@@ -43,23 +39,50 @@ String formattedDate = DateFormat('dd MMM yyyy').format(parsedDate); // 07 Oct 2
 
         final String location =
             profile['travel_detail']?['location'] ?? "Unknown";
-        final String joinedDate = profile['created_at'] ?? "Unknown";
+
+        final String joinedRaw = profile['created_at'] ?? "";
+        String formattedDate = "Unknown";
+        if (joinedRaw.isNotEmpty) {
+          try {
+            DateTime parsedDate = DateTime.parse(joinedRaw);
+            formattedDate = DateFormat('dd MMM yyyy').format(parsedDate);
+          } catch (e) {
+            formattedDate = "Unknown";
+          }
+        }
+
         final String bio = profile['bio'] ?? "No bio available.";
         final String email = profile['email'] ?? "No email provided";
         final String phone = profile['phone_number'] ?? "No phone provided";
         final String travelInterest =
             profile['travel_detail']?['travel_interest'] ?? "Not specified";
-        final String visitedPlaces =
-            profile['travel_detail']?['visited_place'] ?? "Not specified";
+
+        // 🔹 Clean display for visited places (no quotes)
+        final visitedData = profile['travel_detail']?['visited_place'];
+        String visitedPlaces = "Not specified";
+        if (visitedData is List) {
+          visitedPlaces =
+              visitedData.map((e) => e.toString().trim()).join(', ');
+        } else if (visitedData is String) {
+          visitedPlaces = visitedData.replaceAll(RegExp(r'[\[\]\"]'), '').trim();
+        }
+
+        // 🔹 Clean display for travel type (no quotes)
+        final travelTypeData = profile['travel_detail']?['travel_type'];
+        String travelType = "Not specified";
+        if (travelTypeData is List) {
+          travelType =
+              travelTypeData.map((e) => e.toString().trim()).join(', ');
+        } else if (travelTypeData is String) {
+          travelType = travelTypeData.replaceAll(RegExp(r'[\[\]\"]'), '').trim();
+        }
+
         final String dreamDestination =
             profile['travel_detail']?['dream_destination'] ?? "Not specified";
         final String language =
             profile['travel_detail']?['language'] ?? "Not specified";
-        final String travelType =
-            profile['travel_detail']?['travel_type']?.toString() ?? "Not specified";
         final String travelMode =
             profile['travel_detail']?['travel_mode'] ?? "Not specified";
-
         final String userType = profile['user_type'] ?? 'user';
 
         // 🔹 Stats
@@ -109,11 +132,10 @@ String formattedDate = DateFormat('dd MMM yyyy').format(parsedDate); // 07 Oct 2
                       style: GoogleFonts.inter(fontSize: 16, color: Colors.grey),
                     ),
                     const SizedBox(height: 8),
-          Text(
-  "Joined: $formattedDate",
-  style: GoogleFonts.inter(fontSize: 14, color: Colors.grey),
-),
-
+                    Text(
+                      "Joined: $formattedDate",
+                      style: GoogleFonts.inter(fontSize: 14, color: Colors.grey),
+                    ),
                     const SizedBox(height: 16),
 
                     // ✅ Message Button with conditional navigation
@@ -127,23 +149,24 @@ String formattedDate = DateFormat('dd MMM yyyy').format(parsedDate); // 07 Oct 2
                         ),
                       ),
                       onPressed: () {
-               if (userType.toLowerCase() == 'expert') {
-  // Navigate to ExpertProfile page
-  Get.to(() => ExpertsProfileView(
-        expertId: profile['id'],         // Use the profile ID
-        expertuserId: profile['user_id'] ?? profile['id'], // Fallback if user_id missing
-      ));
-} else {
-  // Navigate to ChatBothView
-  Get.to(() => ChatBothView(
-        currentUser: controller.currentUserId.toString(),
-        otherUser: name,
-        otherUserImage: profileImage,
-        otherUserId: profile['id'].toString(),
-        chatId: "${controller.currentUserId}_${profile['id']}",
-        isExpert: false,
-      ));
-}
+                        if (userType.toLowerCase() == 'expert') {
+                          Get.to(() => ExpertsProfileView(
+                                expertId: profile['id'],
+                                expertuserId:
+                                    profile['user_id'] ?? profile['id'],
+                              ));
+                        } else {
+                          Get.to(() => ChatBothView(
+                                currentUser:
+                                    controller.currentUserId.toString(),
+                                otherUser: name,
+                                otherUserImage: profileImage,
+                                otherUserId: profile['id'].toString(),
+                                chatId:
+                                    "${controller.currentUserId}_${profile['id']}",
+                                isExpert: false,
+                              ));
+                        }
                       },
                       icon: const Icon(Icons.message, color: Colors.white),
                       label: Text(

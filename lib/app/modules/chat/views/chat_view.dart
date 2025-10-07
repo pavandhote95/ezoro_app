@@ -3,6 +3,8 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
+import 'package:travel_app2/app/modules/user_profile/views/user_profile_view.dart';
+import 'package:travel_app2/app/routes/app_pages.dart';
 import '../controllers/chat_controller.dart';
 
 class ChatView extends StatefulWidget {
@@ -67,19 +69,27 @@ class _ChatViewState extends State<ChatView> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF1F2C34),
         elevation: 0,
-        title: Row(
-          children: [
-            _buildAvatar(widget.otherUserImage, widget.otherUser),
-            const SizedBox(width: 12),
-            Text(
-              widget.otherUser,
-              style: GoogleFonts.openSans(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
+        title: GestureDetector(
+          onTap: (){
+        Get.toNamed(
+                      Routes.USER_PROFILE,
+                      arguments: {"user_id": receiverId},
+                    );
+          },
+          child: Row(
+            children: [
+              _buildAvatar(widget.otherUserImage, widget.otherUser),
+              const SizedBox(width: 12),
+              Text(
+                widget.otherUser,
+                style: GoogleFonts.openSans(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
       body: Column(
