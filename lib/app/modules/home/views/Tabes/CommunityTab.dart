@@ -14,6 +14,7 @@ import 'package:travel_app2/app/routes/app_pages.dart';
 import '../../../../models/post_model.dart';
 import '../../controllers/community_controller.dart';
 
+
 class CommunityTab extends StatefulWidget {
   const CommunityTab({super.key});
 
@@ -229,14 +230,15 @@ class _CommunityTabState extends State<CommunityTab>
                                 ),
                               ],
                             ),
-                           Text(
-  '${post.location != null ? post.location!.split(' ').take(10).join(' ') : " "} · ${post.createdAt != null ? "${post.createdAt!.year}-${post.createdAt!.month.toString().padLeft(2, '0')}-${post.createdAt!.day.toString().padLeft(2, '0')}" : ""}',
+                          Text(
+  '${post.location != null ? post.location!.split(' ').take(5).join(' ') : " "} · ${post.createdAt != null ? "${post.createdAt!.year}-${post.createdAt!.month.toString().padLeft(2, '0')}-${post.createdAt!.day.toString().padLeft(2, '0')}" : ""}',
   style: GoogleFonts.inter(
     fontWeight: FontWeight.w400,
     fontSize: 14,
     color: Colors.grey.shade500,
   ),
 ),
+
 
                           ],
                         ),

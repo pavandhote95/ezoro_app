@@ -36,7 +36,14 @@ class _ChatWithExpertViewState extends State<ChatWithExpertView> {
   void initState() {
     super.initState();
     controller = Get.put(ChatWithExpertController());
-    controller.fetchMessagesusertoexpert(receiverId: widget.expertId);
+
+    // Set loading true before fetching
+    controller.isLoading.value = true;
+    controller.fetchMessagesusertoexpert(receiverId: widget.expertId).then((_) {
+      controller.isLoading.value = false;
+      scrollToBottom();
+    });
+
     ever(controller.messages, (_) => scrollToBottom());
 
     _razorpay = Razorpay();
@@ -44,9 +51,7 @@ class _ChatWithExpertViewState extends State<ChatWithExpertView> {
     _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
     _razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
 
-
     userType = box.read('role') ?? "user";
-    
   }
 
   @override
@@ -292,77 +297,81 @@ class _ChatWithExpertViewState extends State<ChatWithExpertView> {
           ],
         ),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: Obx(() {
-             
-              return ListView.builder(
+      body: Obx(() {
+        if (controller.isLoading.value) {
+          // 🔹 Show loader when messages are loading
+          return const Center(
+            child: CircularProgressIndicator(color: Colors.white),
+          );
+        }
+
+        return Column(
+          children: [
+            Expanded(
+              child: ListView.builder(
                 controller: scrollController,
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 10),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 itemCount: controller.messages.length,
                 itemBuilder: (context, index) =>
                     _buildMessageBubble(controller.messages[index]),
-              );
-            }),
-          ),
-          SafeArea(
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              color: Colors.grey.shade900,
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: messageController,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: InputDecoration(
-                        hintText: "Type a message...",
-                        hintStyle:
-                            const TextStyle(color: Colors.white54),
-                        filled: true,
-                        fillColor: Colors.grey.shade800,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(30),
-                          borderSide: BorderSide.none,
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                            vertical: 10, horizontal: 16),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  if (userType != "expert")
-                    InkWell(
-                      onTap: _showPaymentModal,
-                      borderRadius: BorderRadius.circular(30),
-                      child: Container(
-                        width: 42,
-                        height: 42,
-                        decoration: const BoxDecoration(
-                            color: Colors.green, shape: BoxShape.circle),
-                        child: const Center(
-                          child: Text("₹",
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold)),
-                        ),
-                      ),
-                    ),
-                  const SizedBox(width: 8),
-                  IconButton(
-                    onPressed: _sendMessage,
-                    icon:
-                        const Icon(Icons.send, color: Colors.white),
-                  ),
-                ],
               ),
             ),
-          ),
-        ],
-      ),
+            SafeArea(
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                color: Colors.grey.shade900,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: messageController,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          hintText: "Type a message...",
+                          hintStyle: const TextStyle(color: Colors.white54),
+                          filled: true,
+                          fillColor: Colors.grey.shade800,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(30),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                              vertical: 10, horizontal: 16),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    if (userType != "expert")
+                      InkWell(
+                        onTap: _showPaymentModal,
+                        borderRadius: BorderRadius.circular(30),
+                        child: Container(
+                          width: 42,
+                          height: 42,
+                          decoration: const BoxDecoration(
+                              color: Colors.green, shape: BoxShape.circle),
+                          child: const Center(
+                            child: Text("₹",
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold)),
+                          ),
+                        ),
+                      ),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      onPressed: _sendMessage,
+                      icon: const Icon(Icons.send, color: Colors.white),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        );
+      }),
     );
   }
 }
