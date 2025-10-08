@@ -5,8 +5,6 @@ import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:travel_app2/app/modules/chat_with_expert/controllers/chat_with_expert_controller.dart';
-import 'package:travel_app2/app/modules/expert/controllers/expert_controller.dart';
-import 'package:travel_app2/app/modules/experts_profile/views/experts_profile_view.dart';
 import '../controllers/talk_to_travellers_chat_controller.dart';
 
 class TalkToTravellersChatView extends StatefulWidget {
@@ -29,11 +27,12 @@ class TalkToTravellersChatView extends StatefulWidget {
 }
 
 class _TalkToTravellersChatViewState extends State<TalkToTravellersChatView> {
-  final TalkToTravellersChatController controller =
-      Get.put(TalkToTravellersChatController());
-  final ChatWithExpertController chatWithController =
-      Get.put(ChatWithExpertController());
-  final ExpertController expertController = Get.put(ExpertController());
+  final TalkToTravellersChatController controller = Get.put(
+    TalkToTravellersChatController(),
+  );
+  final ChatWithExpertController chatWithController = Get.put(
+    ChatWithExpertController(),
+  );
 
   final TextEditingController msgController = TextEditingController();
   final TextEditingController amountController = TextEditingController();
@@ -70,11 +69,19 @@ class _TalkToTravellersChatViewState extends State<TalkToTravellersChatView> {
 
     try {
       controller.isSending.value = true;
+
+      // Send message to expert
       await controller.sendMessageToExpert(
         receiverId: widget.travellerId,
         message: text,
       );
+
       msgController.clear();
+
+      // Check for any API error messages
+      // if (chatWithController.lastErrorMessage.value.isNotEmpty) {
+      //   _showMessageErrorDialog(chatWithController.lastErrorMessage.value);
+      // }
     } catch (e) {
       _showMessageErrorDialog("Failed to send message: $e");
     } finally {
@@ -104,7 +111,9 @@ class _TalkToTravellersChatViewState extends State<TalkToTravellersChatView> {
   }
 
   void _showPaymentModal() {
+    // Prefill with expert price
     amountController.text = widget.price;
+
     Get.defaultDialog(
       title: "Pay Traveller",
       titleStyle: const TextStyle(
@@ -138,6 +147,10 @@ class _TalkToTravellersChatViewState extends State<TalkToTravellersChatView> {
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide.none,
               ),
+              contentPadding: const EdgeInsets.symmetric(
+                vertical: 16,
+                horizontal: 16,
+              ),
             ),
           ),
           const SizedBox(height: 20),
@@ -145,12 +158,15 @@ class _TalkToTravellersChatViewState extends State<TalkToTravellersChatView> {
             onPressed: () {
               final amount = amountController.text.trim();
               if (amount.isEmpty) {
-                Get.snackbar("Error", "Please enter an amount",
-                    backgroundColor: Colors.red.shade600,
-                    colorText: Colors.white);
+                Get.snackbar(
+                  "Error",
+                  "Please enter an amount",
+                  backgroundColor: Colors.red.shade600,
+                  colorText: Colors.white,
+                );
                 return;
               }
-              Get.back();
+              Get.back(); // Close the dialog
               _openRazorpayPayment(amount);
             },
             style: ElevatedButton.styleFrom(
@@ -183,8 +199,12 @@ class _TalkToTravellersChatViewState extends State<TalkToTravellersChatView> {
     try {
       _razorpay.open(options);
     } catch (e) {
-      Get.snackbar('Error', 'Failed to open payment gateway: $e',
-          backgroundColor: Colors.red.shade600, colorText: Colors.white);
+      Get.snackbar(
+        'Error',
+        'Failed to open payment gateway: $e',
+        backgroundColor: Colors.red.shade600,
+        colorText: Colors.white,
+      );
     }
   }
 
@@ -200,14 +220,21 @@ class _TalkToTravellersChatViewState extends State<TalkToTravellersChatView> {
   }
 
   void _handlePaymentError(PaymentFailureResponse response) {
-    Get.snackbar('Payment Failed',
-        'Code: ${response.code}\nMessage: ${response.message}',
-        backgroundColor: Colors.red.shade600, colorText: Colors.white);
+    Get.snackbar(
+      'Payment Failed',
+      'Code: ${response.code}\nMessage: ${response.message}',
+      backgroundColor: Colors.red.shade600,
+      colorText: Colors.white,
+    );
   }
 
   void _handleExternalWallet(ExternalWalletResponse response) {
-    Get.snackbar('Wallet', 'External wallet: ${response.walletName}',
-        backgroundColor: Colors.orange.shade600, colorText: Colors.white);
+    Get.snackbar(
+      'Wallet',
+      'External wallet: ${response.walletName}',
+      backgroundColor: Colors.orange.shade600,
+      colorText: Colors.white,
+    );
   }
 
   void _endChat() {
@@ -227,43 +254,21 @@ class _TalkToTravellersChatViewState extends State<TalkToTravellersChatView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.black,
-        title: GestureDetector(
-          onTap: () {
-            final selectedExpert = expertController.experts.firstWhereOrNull(
-              (e) => e['user_id'] == widget.travellerId,
-            );
-
-            if (selectedExpert != null) {
-              Get.to(() => ExpertsProfileView(
-                    expertId: selectedExpert['id'],
-                    expertuserId: selectedExpert['user_id'],
-                  ));
-            } else {
-              Get.snackbar("Not Found", "Expert details not available",
-                  backgroundColor: Colors.redAccent,
-                  colorText: Colors.white);
-            }
-          },
-          child: Row(
-            children: [
-              CircleAvatar(
-                backgroundImage: widget.travellerImage.isNotEmpty
-                    ? NetworkImage(widget.travellerImage)
-                    : null,
-                child: widget.travellerImage.isEmpty
-                    ? Text(widget.travellerName[0].toUpperCase())
-                    : null,
-              ),
-              const SizedBox(width: 10),
-              Text(
-                widget.travellerName,
-                style: const TextStyle(color: Colors.white),
-              ),
-            ],
-          ),
+        title: Row(
+          children: [
+            CircleAvatar(
+              backgroundImage: widget.travellerImage.isNotEmpty
+                  ? NetworkImage(widget.travellerImage)
+                  : null,
+              child: widget.travellerImage.isEmpty
+                  ? Text(widget.travellerName[0])
+                  : null,
+            ),
+            const SizedBox(width: 10),
+            Text(widget.travellerName),
+          ],
         ),
       ),
       body: SafeArea(
@@ -273,21 +278,30 @@ class _TalkToTravellersChatViewState extends State<TalkToTravellersChatView> {
               child: Obx(() {
                 if (controller.isLoading.value) {
                   return Center(
-                    child: Lottie.asset(
-                      'assets/lottie/Loading.json',
+                    child: SizedBox(
                       height: 120,
                       width: 120,
+                      child: Lottie.asset(
+                        'assets/lottie/Loading.json',
+                        repeat: true,
+                        animate: true,
+                      ),
                     ),
                   );
                 }
-
                 if (controller.messages.isEmpty) {
-                  return const Center(
-                    child: Text("No messages yet",
-                        style: TextStyle(color: Colors.white70)),
+                             return Center(
+                    child: SizedBox(
+                      height: 120,
+                      width: 120,
+                      child: Lottie.asset(
+                        'assets/lottie/Loading.json',
+                        repeat: true,
+                        animate: true,
+                      ),
+                    ),
                   );
                 }
-
                 return ListView.builder(
                   controller: controller.scrollController,
                   padding: const EdgeInsets.all(12),
@@ -298,15 +312,16 @@ class _TalkToTravellersChatViewState extends State<TalkToTravellersChatView> {
                     String time = "";
                     try {
                       if (msg["created_at"] != null) {
-                        final dateTime =
-                            DateTime.parse(msg["created_at"]).toLocal();
+                        // Parse UTC timestamp and convert to local time
+                        final dateTime = DateTime.parse(msg["created_at"]).toLocal();
                         time = DateFormat("hh:mm a").format(dateTime);
                       }
-                    } catch (_) {}
+                    } catch (e) {
+                      // Fallback to empty string if parsing fails
+                      time = "";
+                    }
                     return Align(
-                      alignment: isMe
-                          ? Alignment.centerRight
-                          : Alignment.centerLeft,
+                      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
                       child: Container(
                         margin: const EdgeInsets.symmetric(vertical: 4),
                         padding: const EdgeInsets.all(12),
@@ -319,17 +334,20 @@ class _TalkToTravellersChatViewState extends State<TalkToTravellersChatView> {
                               ? CrossAxisAlignment.end
                               : CrossAxisAlignment.start,
                           children: [
-                            Text(msg["message"] ?? "",
-                                style: const TextStyle(color: Colors.white)),
-                            if (time.isNotEmpty)
-                              Padding(
-                                padding: const EdgeInsets.only(top: 4),
-                                child: Text(
-                                  time,
-                                  style: const TextStyle(
-                                      color: Colors.white70, fontSize: 10),
+                            Text(
+                              msg["message"] ?? "",
+                              style: const TextStyle(color: Colors.white),
+                            ),
+                            if (time.isNotEmpty) ...[
+                              const SizedBox(height: 4),
+                              Text(
+                                time,
+                                style: const TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 10,
                                 ),
                               ),
+                            ],
                           ],
                         ),
                       ),
@@ -339,75 +357,84 @@ class _TalkToTravellersChatViewState extends State<TalkToTravellersChatView> {
               }),
             ),
 
-            /// Bottom Input
-            Container(
-              padding: const EdgeInsets.all(12),
-              color: Colors.grey.shade900,
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: msgController,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: InputDecoration(
-                        hintText: "Type a message...",
-                        hintStyle: const TextStyle(color: Colors.white54),
-                        filled: true,
-                        fillColor: Colors.grey.shade800,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(30),
-                          borderSide: BorderSide.none,
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                            vertical: 10, horizontal: 16),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  if (userType == "expert")
-                    InkWell(
-                      onTap: _endChat,
-                      borderRadius: BorderRadius.circular(30),
-                      child: Container(
-                        width: 42,
-                        height: 42,
-                        decoration: const BoxDecoration(
-                          color: Colors.red,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(Icons.call_end,
-                            color: Colors.white, size: 22),
-                      ),
-                    )
-                  else
-                    InkWell(
-                      onTap: _showPaymentModal,
-                      borderRadius: BorderRadius.circular(30),
-                      child: Container(
-                        width: 42,
-                        height: 42,
-                        decoration: const BoxDecoration(
-                          color: Colors.green,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Center(
-                          child: Text(
-                            "₹",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
+            /// Message Input
+            SafeArea(
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                color: Colors.grey.shade900,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: msgController,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          hintText: "Type a message...",
+                          hintStyle: const TextStyle(color: Colors.white54),
+                          filled: true,
+                          fillColor: Colors.grey.shade800,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(30),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 10,
+                            horizontal: 16,
                           ),
                         ),
                       ),
                     ),
-                  const SizedBox(width: 8),
-                  IconButton(
-                    onPressed: _sendMessage,
-                    icon: const Icon(Icons.send, color: Colors.white),
-                  ),
-                ],
+                    const SizedBox(width: 8),
+
+                    /// Button based on user type
+                    if (userType == "expert")
+                      InkWell(
+                        onTap: _endChat,
+                        borderRadius: BorderRadius.circular(30),
+                        child: Container(
+                          width: 42,
+                          height: 42,
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.call_end,
+                            color: Colors.white,
+                            size: 22,
+                          ),
+                        ),
+                      )
+                    else
+                      InkWell(
+                        onTap: _showPaymentModal,
+                        borderRadius: BorderRadius.circular(30),
+                        child: Container(
+                          width: 42,
+                          height: 42,
+                          decoration: const BoxDecoration(
+                            color: Colors.green,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Center(
+                            child: Text(
+                              "₹",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      onPressed: _sendMessage,
+                      icon: const Icon(Icons.send, color: Colors.white),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],

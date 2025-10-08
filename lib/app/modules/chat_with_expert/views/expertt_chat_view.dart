@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:lottie/lottie.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import '../controllers/chat_with_expert_controller.dart';
 
@@ -297,12 +296,7 @@ class _ChatWithExpertViewState extends State<ChatWithExpertView> {
         children: [
           Expanded(
             child: Obx(() {
-              if (controller.isLoading.value) {
-                return Center(
-                  child: Lottie.asset('assets/lottie/Loading.json',
-                      height: 120, width: 120),
-                );
-              }
+             
               return ListView.builder(
                 controller: scrollController,
                 padding: const EdgeInsets.symmetric(
