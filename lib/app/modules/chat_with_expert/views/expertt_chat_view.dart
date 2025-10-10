@@ -298,12 +298,7 @@ class _ChatWithExpertViewState extends State<ChatWithExpertView> {
         ),
       ),
       body: Obx(() {
-        if (controller.isLoading.value) {
-          // 🔹 Show loader when messages are loading
-          return const Center(
-            child: CircularProgressIndicator(color: Colors.white),
-          );
-        }
+    
 
         return Column(
           children: [
