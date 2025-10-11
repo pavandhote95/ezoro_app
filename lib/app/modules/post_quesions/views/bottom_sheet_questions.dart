@@ -109,14 +109,18 @@ class BottomSheetQuestionsView extends GetView<BottomSheetQuestionsController> {
   Widget _buildCitySearchField() {
     return Obx(() {
       return Column(
+
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           TextField(
             controller: controller.locationController,
             onChanged: (value) {
+
               controller.updateLocation(value);   // keep Rx + controller in sync
-              controller.fetchLocations(value);   // fetch suggestions from Nominatim
+              controller.fetchLocations(value); 
+                // fetch suggestions from Nominatim
             },
+
             style: const TextStyle(color: Colors.white, fontSize: 16),
             decoration: InputDecoration(
               labelText: "Location",

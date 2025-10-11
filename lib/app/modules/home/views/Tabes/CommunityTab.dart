@@ -14,7 +14,6 @@ import 'package:travel_app2/app/routes/app_pages.dart';
 import '../../../../models/post_model.dart';
 import '../../controllers/community_controller.dart';
 
-
 class CommunityTab extends StatefulWidget {
   const CommunityTab({super.key});
 
@@ -65,6 +64,7 @@ class _CommunityTabState extends State<CommunityTab>
       });
     }
   }
+
 
   Future<void> _onRefresh() async {
     await controller.fetchPosts(); // Assuming controller has a refreshPosts method
@@ -165,6 +165,7 @@ class _CommunityTabState extends State<CommunityTab>
         controller.fetchComments(post.id);
       });
     }
+
 
     final textPainter = TextPainter(
       text: TextSpan(text: post.question, style: textStyle),
