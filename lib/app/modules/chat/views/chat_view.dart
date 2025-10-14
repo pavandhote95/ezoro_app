@@ -3,16 +3,15 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
-import 'package:travel_app2/app/modules/user_profile/views/user_profile_view.dart';
-import 'package:travel_app2/app/routes/app_pages.dart';
 import '../controllers/chat_controller.dart';
+import 'package:travel_app2/app/routes/app_pages.dart';
 
 class ChatView extends StatefulWidget {
-  final String currentUser;      // logged in user id
-  final String otherUser;        // name of other user
-  final String chatId;           // combined id (for history / stream)
-  final String otherUserImage;   // profile image url
-  final String otherUserId;      // receiver user id
+  final String currentUser;    
+  final String otherUser;      
+  final String chatId;         
+  final String otherUserImage; 
+  final String otherUserId;    
 
   const ChatView({
     super.key,
@@ -37,7 +36,6 @@ class _ChatViewState extends State<ChatView> {
   @override
   void initState() {
     super.initState();
-    // ✅ Always take direct receiverId
     receiverId = widget.otherUserId;
   }
 
@@ -45,12 +43,9 @@ class _ChatViewState extends State<ChatView> {
     final text = _messageController.text.trim();
     if (text.isEmpty) return;
 
-    // ✅ API call
     controller.sendMessageusertouser(receiverId: receiverId, message: text);
-
     _messageController.clear();
 
-    // ✅ Auto scroll to bottom after sending
     Future.delayed(const Duration(milliseconds: 100), () {
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
@@ -70,11 +65,11 @@ class _ChatViewState extends State<ChatView> {
         backgroundColor: const Color(0xFF1F2C34),
         elevation: 0,
         title: GestureDetector(
-          onTap: (){
-        Get.toNamed(
-                      Routes.USER_PROFILE,
-                      arguments: {"user_id": receiverId},
-                    );
+          onTap: () {
+            Get.toNamed(
+              Routes.USER_PROFILE,
+              arguments: {"user_id": receiverId},
+            );
           },
           child: Row(
             children: [
@@ -134,9 +129,8 @@ class _ChatViewState extends State<ChatView> {
                     final time = DateFormat('hh:mm a').format(date);
 
                     return Align(
-                      alignment: isMe
-                          ? Alignment.centerRight
-                          : Alignment.centerLeft,
+                      alignment:
+                          isMe ? Alignment.centerRight : Alignment.centerLeft,
                       child: Container(
                         margin: const EdgeInsets.symmetric(
                             vertical: 4, horizontal: 6),
@@ -154,9 +148,9 @@ class _ChatViewState extends State<ChatView> {
                             topRight: const Radius.circular(18),
                             bottomLeft: isMe
                                 ? const Radius.circular(18)
-                                : Radius.zero,
+                                : const Radius.circular(0),
                             bottomRight: isMe
-                                ? Radius.zero
+                                ? const Radius.circular(0)
                                 : const Radius.circular(18),
                           ),
                         ),
@@ -242,11 +236,9 @@ class _ChatViewState extends State<ChatView> {
     );
   }
 
-  /// 🔹 Avatar function (same as in DmView)
+  /// Avatar
   Widget _buildAvatar(String? imageUrl, String name) {
-    if (imageUrl != null &&
-        imageUrl.isNotEmpty &&
-        imageUrl.startsWith("http")) {
+    if (imageUrl != null && imageUrl.isNotEmpty && imageUrl.startsWith("http")) {
       return CircleAvatar(
         radius: 20,
         backgroundImage: NetworkImage(imageUrl),

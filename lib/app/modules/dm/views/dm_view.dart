@@ -112,35 +112,48 @@ class DmView extends StatelessWidget {
                 ),
               ),
             ),
-            Expanded(
-              child: TabBarView(
-                children: [
-                  // 🔹 Users tab
-                  Obx(() {
-                    if (controller.isLoading.value) {
-                      return Center(
-                        child: SizedBox(
-                          height: 120,
-                          width: 120,
-                          child: Lottie.asset(
-                            'assets/lottie/Loading.json', // ✅ apna asset path yaha do
-                            repeat: true,
-                            animate: true,
-                          ),
-                        ),
-                      );
-                    }
-                    return _buildUserList(
-                      controller.users,
-                      "No Users Found",
-                      chatController,
-                    );
-                  }),
-                  TravellersView(expertuserId: expertuserId),
-
-                ],
+          Expanded(
+  child: TabBarView(
+    children: [
+      // 🔹 Users tab with pull-to-refresh
+      RefreshIndicator(
+        color: AppColors.buttonBg, // your theme color
+        onRefresh: () async {
+          await controller.fetchUsers(); // your existing fetch function
+        },
+        child: Obx(() {
+          if (controller.isLoading.value) {
+            return Center(
+              child: SizedBox(
+                height: 120,
+                width: 120,
+                child: Lottie.asset(
+                  'assets/lottie/Loading.json', 
+                  repeat: true,
+                  animate: true,
+                ),
               ),
-            ),
+            );
+          }
+          return _buildUserList(
+            controller.users,
+            "No Users Found",
+            chatController,
+          );
+        }),
+      ),
+
+      // 🔹 Travellers tab with pull-to-refresh
+      RefreshIndicator(
+        color: AppColors.buttonBg, // your theme color
+        onRefresh: () async {
+          await controller.fetchTravellers(); // your existing fetch function
+        },
+        child: TravellersView(expertuserId: expertuserId),
+      ),
+    ],
+  ),
+),
 
           ],
 

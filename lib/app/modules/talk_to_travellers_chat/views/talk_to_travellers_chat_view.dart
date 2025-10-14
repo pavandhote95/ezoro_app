@@ -274,88 +274,120 @@ class _TalkToTravellersChatViewState extends State<TalkToTravellersChatView> {
       body: SafeArea(
         child: Column(
           children: [
-            Expanded(
-              child: Obx(() {
-                if (controller.isLoading.value) {
-                  return Center(
-                    child: SizedBox(
-                      height: 120,
-                      width: 120,
-                      child: Lottie.asset(
-                        'assets/lottie/Loading.json',
-                        repeat: true,
-                        animate: true,
-                      ),
-                    ),
-                  );
-                }
-                if (controller.messages.isEmpty) {
-                             return Center(
-                    child: SizedBox(
-                      height: 120,
-                      width: 120,
-                      child: Lottie.asset(
-                        'assets/lottie/Loading.json',
-                        repeat: true,
-                        animate: true,
-                      ),
-                    ),
-                  );
-                }
-                return ListView.builder(
-                  controller: controller.scrollController,
-                  padding: const EdgeInsets.all(12),
-                  itemCount: controller.messages.length,
-                  itemBuilder: (context, index) {
-                    final msg = controller.messages[index];
-                    final isMe = msg["sender_id"] == controller.myUserId;
-                    String time = "";
-                    try {
-                      if (msg["created_at"] != null) {
-                        // Parse UTC timestamp and convert to local time
-                        final dateTime = DateTime.parse(msg["created_at"]).toLocal();
-                        time = DateFormat("hh:mm a").format(dateTime);
-                      }
-                    } catch (e) {
-                      // Fallback to empty string if parsing fails
-                      time = "";
-                    }
-                    return Align(
-                      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(vertical: 4),
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: isMe ? Colors.blue : Colors.grey[800],
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: isMe
-                              ? CrossAxisAlignment.end
-                              : CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              msg["message"] ?? "",
-                              style: const TextStyle(color: Colors.white),
-                            ),
-                            if (time.isNotEmpty) ...[
-                              const SizedBox(height: 4),
-                              Text(
-                                time,
-                                style: const TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 10,
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                );
-              }),
+        Expanded(
+  child: Obx(() {
+    if (controller.isLoading.value) {
+      return Center(
+        child: SizedBox(
+          height: 120,
+          width: 120,
+          child: Lottie.asset(
+            'assets/lottie/Loading.json',
+            repeat: true,
+            animate: true,
+          ),
+        ),
+      );
+    }
+
+    if (controller.messages.isEmpty) {
+      return Center(
+        child: SizedBox(
+          height: 120,
+          width: 120,
+          child: Lottie.asset(
+                    'assets/lottie/Loading.json', // optional empty state animation
+            repeat: true,
+            animate: true,
+          ),
+        ),
+      );
+    }
+
+    return
+ListView.builder(
+  controller: controller.scrollController,
+  padding: const EdgeInsets.all(12),
+  itemCount: controller.messages.length,
+  itemBuilder: (context, index) {
+    final msg = controller.messages[index];
+
+    final isUser = msg["user_type"] == "expert"; // user = left, expert = right
+
+    String time = "";
+    try {
+      if (msg["created_at"] != null) {
+        final dateTime = DateTime.parse(msg["created_at"]).toLocal();
+        time = DateFormat("hh:mm a").format(dateTime);
+      }
+    } catch (_) {
+      time = "";
+    }
+
+    // ✅ Check read status
+    final isRead = (msg["is_read"] ?? 0) == 1;
+
+    return Row(
+      mainAxisAlignment:
+          isUser ? MainAxisAlignment.start : MainAxisAlignment.end,
+      children: [
+        Container(
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width * 0.7,
+          ),
+          margin: const EdgeInsets.symmetric(vertical: 4),
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
+          decoration: BoxDecoration(
+            color: isUser ? Colors.grey[800] : Colors.blue,
+            borderRadius: BorderRadius.only(
+              topLeft: const Radius.circular(12),
+              topRight: const Radius.circular(12),
+              bottomLeft: isUser ? const Radius.circular(0) : const Radius.circular(12),
+              bottomRight: isUser ? const Radius.circular(12) : const Radius.circular(0),
             ),
+          ),
+          child: Column(
+            crossAxisAlignment:
+                isUser ? CrossAxisAlignment.start : CrossAxisAlignment.end,
+            children: [
+              Text(
+                msg["message"] ?? "",
+                style: const TextStyle(color: Colors.white, fontSize: 16),
+              ),
+              if (time.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Text(
+                      time,
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 10,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    if (!isUser) // show tick only for messages sent by "expert"
+                      Icon(
+                        Icons.done_all,
+                        size: 14,
+                        color: isRead ? Colors.blue : Colors.white70,
+                      ),
+                  ],
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  },
+);
+
+ 
+  }),
+),
 
             /// Message Input
             SafeArea(

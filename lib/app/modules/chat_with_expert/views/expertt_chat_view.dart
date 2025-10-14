@@ -37,7 +37,6 @@ class _ChatWithExpertViewState extends State<ChatWithExpertView> {
     super.initState();
     controller = Get.put(ChatWithExpertController());
 
-    // Set loading true before fetching
     controller.isLoading.value = true;
     controller.fetchMessagesusertoexpert(receiverId: widget.expertId).then((_) {
       controller.isLoading.value = false;
@@ -63,7 +62,7 @@ class _ChatWithExpertViewState extends State<ChatWithExpertView> {
   }
 
   void scrollToBottom() {
-    Future.delayed(const Duration(milliseconds: 200), () {
+    Future.delayed(const Duration(milliseconds: 300), () {
       if (scrollController.hasClients) {
         scrollController.animateTo(
           scrollController.position.maxScrollExtent,
@@ -105,6 +104,7 @@ class _ChatWithExpertViewState extends State<ChatWithExpertView> {
     }
   }
 
+  // Payment Bottom Sheet
   void _showPaymentModal() {
     showModalBottomSheet(
       context: context,
@@ -247,40 +247,65 @@ class _ChatWithExpertViewState extends State<ChatWithExpertView> {
         backgroundColor: Colors.orange.shade600, colorText: Colors.white);
   }
 
-  Widget _buildMessageBubble(Map<String, dynamic> msg) {
-    final isSender = msg['sender'] == "me";
-    final timeString =
-        msg['created_at'] != null ? formatMessageTime(msg['created_at']) : '';
+  // ✅ Updated Message Bubble UI (Left/Right alignment)
+Widget _buildMessageBubble(Map<String, dynamic> msg) {
+  final isSender = msg['sender'] == "me";
+  final timeString =
+      msg['created_at'] != null ? formatMessageTime(msg['created_at']) : '';
+  final isRead = msg['is_read'] == 1;
 
-    return Align(
-      alignment:
-          isSender ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 4),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: isSender ? Colors.blue.shade600 : Colors.grey[800],
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          crossAxisAlignment:
-              isSender ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-          children: [
-            Text(msg['message'] ?? '',
-                style: GoogleFonts.poppins(color: Colors.white)),
-            if (timeString.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: Text(timeString,
-                    style: GoogleFonts.poppins(
-                        color: Colors.grey.shade300, fontSize: 10)),
-              ),
-          ],
+  return Align(
+    alignment: isSender ? Alignment.centerRight : Alignment.centerLeft,
+    child: Container(
+      constraints: BoxConstraints(maxWidth: Get.width * 0.7),
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: isSender ? Colors.blue.shade600 : Colors.grey.shade800,
+        borderRadius: BorderRadius.only(
+          topLeft: const Radius.circular(16),
+          topRight: const Radius.circular(16),
+          bottomLeft:
+              isSender ? const Radius.circular(16) : const Radius.circular(4),
+          bottomRight:
+              isSender ? const Radius.circular(4) : const Radius.circular(16),
         ),
       ),
-    );
-  }
+      child: Column(
+        crossAxisAlignment:
+            isSender ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        children: [
+          Text(
+            msg['message'] ?? '',
+            style: GoogleFonts.poppins(color: Colors.white, fontSize: 14),
+          ),
+          const SizedBox(height: 4),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.end, 
+            children: [
+              Text(
+                timeString,
+                style: GoogleFonts.poppins(
+                    color: Colors.white70, fontSize: 10),
+              ),
+              if (isSender) ...[
+                const SizedBox(width: 4),
+                Icon(
+                  isRead ? Icons.done_all : Icons.done,
+                  size: 16,
+                  color: isRead ? Colors.blueAccent : Colors.white70,
+                ),
+              ],
+            ],
+          ),
+        ],
+      ),
+    ),
+  );
+}
 
+  // ✅ Main build
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -298,7 +323,6 @@ class _ChatWithExpertViewState extends State<ChatWithExpertView> {
         ),
       ),
       body: Obx(() {
-    
 
         return Column(
           children: [
@@ -306,10 +330,12 @@ class _ChatWithExpertViewState extends State<ChatWithExpertView> {
               child: ListView.builder(
                 controller: scrollController,
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 itemCount: controller.messages.length,
-                itemBuilder: (context, index) =>
-                    _buildMessageBubble(controller.messages[index]),
+                itemBuilder: (context, index) {
+                  final msg = controller.messages[index];
+                  return _buildMessageBubble(msg);
+                },
               ),
             ),
             SafeArea(

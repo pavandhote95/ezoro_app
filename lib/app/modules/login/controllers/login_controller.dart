@@ -191,52 +191,65 @@ Future<void> saveDeviceToken(int userId) async {
   void resendOtp() => sendPhoneOtp();
 
   /// ✅ Google Login
-  Future<void> googleLogin() async {
-    final _auth = FirebaseAuth.instance;
-    final googleSignIn = GoogleSignIn();
+/// ✅ Google Login
+Future<void> googleLogin() async {
+  final _auth = FirebaseAuth.instance;
+  final googleSignIn = GoogleSignIn();
 
-    try {
-      isGoogleLoading.value = true;
+  try {
+    isGoogleLoading.value = true;
 
-      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
-      if (googleUser == null) {
-        isGoogleLoading.value = false;
-        return;
-      }
-
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
-
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-
-      final UserCredential userCredential =
-          await _auth.signInWithCredential(credential);
-
-      final user = userCredential.user;
+    final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+    if (googleUser == null) {
       isGoogleLoading.value = false;
-
-      if (user != null) {
-        box.write('isLoggedIn', true);
-        box.write('userEmail', user.email);
-        box.write('userName', user.displayName);
-        box.write('userUid', user.uid);
-
-        debugPrint("✅ Google Login Successful");
-        CustomToast.showSuccess(Get.context!, "Google Login Successful");
-
-        Get.offAllNamed(Routes.LOGIN);
-      } else {
-        CustomToast.showError(Get.context!, "Google login failed");
-      }
-    } catch (e) {
-      isGoogleLoading.value = false;
-      debugPrint("❌ Google Login Error: $e");
-      CustomToast.showError(Get.context!, "Google login error: $e");
+      debugPrint("❌ Google Sign-In canceled by user");
+      return;
     }
+
+    debugPrint("➡️ Google user: ${googleUser.displayName}, email: ${googleUser.email}");
+
+    final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+
+    debugPrint("➡️ Access Token: ${googleAuth.accessToken}");
+    debugPrint("➡️ ID Token: ${googleAuth.idToken}");
+
+    final credential = GoogleAuthProvider.credential(
+      accessToken: googleAuth.accessToken,
+      idToken: googleAuth.idToken,
+    );
+
+    final UserCredential userCredential = await _auth.signInWithCredential(credential);
+
+    final user = userCredential.user;
+    isGoogleLoading.value = false;
+
+    if (user != null) {
+      debugPrint("✅ Google Login Successful");
+      debugPrint("User UID: ${user.uid}");
+      debugPrint("User Name: ${user.displayName}");
+      debugPrint("User Email: ${user.email}");
+      debugPrint("User Phone: ${user.phoneNumber}");
+      debugPrint("User Photo URL: ${user.photoURL}");
+      debugPrint("Access Token (from GoogleAuth): ${googleAuth.accessToken}");
+      debugPrint("ID Token (from GoogleAuth): ${googleAuth.idToken}");
+
+      box.write('isLoggedIn', true);
+      box.write('userEmail', user.email);
+      box.write('userName', user.displayName);
+      box.write('userUid', user.uid);
+
+      CustomToast.showSuccess(Get.context!, "Google Login Successful");
+
+      Get.offAllNamed(Routes.LOGIN);
+    } else {
+      CustomToast.showError(Get.context!, "Google login failed");
+    }
+  } catch (e) {
+    isGoogleLoading.value = false;
+    debugPrint("❌ Google Login Error: $e");
+    CustomToast.showError(Get.context!, "Google login error: $e");
   }
+}
 
   /// ✅ Logout
   void logout() {

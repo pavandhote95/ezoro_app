@@ -12,8 +12,8 @@ class ChatWithExpertController extends GetxController {
   var isSending = false.obs;
   var isLoading = false.obs;
   final box = GetStorage();
-    var selectedRating = 0.obs;
-  late int receiverId; // Store current receiverId for rating
+  var selectedRating = 0.obs;
+  late int receiverId;
 
   /// SEND MESSAGE
   Future<void> sendMessageToExpert({
@@ -59,9 +59,9 @@ class ChatWithExpertController extends GetxController {
           "sender": "me",
           "message": message,
           "created_at": DateTime.now().toString(),
+          "is_read": 0, // initially not read
         });
 
-        // Fetch messages and store receiverId
         await fetchMessagesusertoexpert(receiverId: receiverId);
       } else {
         Fluttertoast.showToast(
@@ -73,9 +73,9 @@ class ChatWithExpertController extends GetxController {
       isSending.value = false;
     }
   }
-  
-  
- Future<void> fetchMessagesusertoexpert({required int receiverId}) async {
+
+  /// FETCH MESSAGES (user ↔ expert)
+  Future<void> fetchMessagesusertoexpert({required int receiverId}) async {
     try {
       isLoading.value = true;
 
@@ -83,11 +83,10 @@ class ChatWithExpertController extends GetxController {
       final userType = box.read('user_type');
       final userId = box.read('user_id');
 
-      this.receiverId = receiverId; // ✅ Store receiverId for rating
+      this.receiverId = receiverId;
 
       var url = Uri.parse(
-        'https://kotiboxglobaltech.com/travel_app/api/expert-messages/get?receiver_id=$receiverId',
-      );
+          'https://kotiboxglobaltech.com/travel_app/api/expert-messages/get?receiver_id=$receiverId');
 
       var response = await http.post(
         url,
@@ -104,30 +103,14 @@ class ChatWithExpertController extends GetxController {
           final List<dynamic> messageList = data["data"] ?? [];
 
           messages.value = messageList.map<Map<String, dynamic>>((msg) {
+            final isMine = msg['user_type'].toString() == userType.toString();
             return {
-              "sender": msg['sender_id'].toString() == userId.toString()
-                  ? "me"
-                  : "expert",
+              "sender": isMine ? "me" : "other",
               "message": msg['message'] ?? "",
               "created_at": msg['created_at'] ?? "",
+              "is_read": msg['is_read'] ?? 0,
             };
           }).toList();
-
-          if (messages.isNotEmpty) {
-            final lastMsg = messages.last["message"]?.toString().trim() ?? "";
-                if (lastMsg.contains("Thanks! Rated")) {
-              final starMatch = RegExp(r'(\d+)★').firstMatch(lastMsg);
-              final rating = starMatch != null ? int.tryParse(starMatch.group(1)!) : null;
-              if (userType == "user") _showThanksDialog(rating);
-            }
-
-            if (userType == "user" &&
-                lastMsg.contains("⭐ Your chat has ended.")) {
-              Future.delayed(const Duration(milliseconds: 600), () {
-                _showRatingDialog();
-              });
-            }
-          }
         }
       } else {
         Fluttertoast.showToast(msg: "Failed to fetch messages");
@@ -139,6 +122,8 @@ class ChatWithExpertController extends GetxController {
       isLoading.value = false;
     }
   }
+
+  /// THANKS DIALOG
   void _showThanksDialog(int? rating) {
     Get.dialog(
       Center(
@@ -156,7 +141,10 @@ class ChatWithExpertController extends GetxController {
               Icon(Icons.star, color: AppColors.buttonBg, size: 40),
               const SizedBox(height: 10),
               Text("Thanks for rating!",
-                  style: GoogleFonts.poppins(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold)),
+                  style: GoogleFonts.poppins(
+                      fontSize: 18,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
               if (rating != null)
                 Wrap(
@@ -174,9 +162,11 @@ class ChatWithExpertController extends GetxController {
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.buttonBg,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12))),
                 onPressed: () => Get.back(),
-                child: Text("OK", style: GoogleFonts.poppins(color: Colors.white)),
+                child:
+                    Text("OK", style: GoogleFonts.poppins(color: Colors.white)),
               ),
             ],
           ),
@@ -186,9 +176,8 @@ class ChatWithExpertController extends GetxController {
     );
   }
 
-
-
- void _showRatingDialog() {
+  /// RATING DIALOG
+  void _showRatingDialog() {
     selectedRating.value = 0;
     Get.dialog(
       Center(
@@ -200,17 +189,24 @@ class ChatWithExpertController extends GetxController {
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: AppColors.buttonBg, width: 2),
             boxShadow: [
-              BoxShadow(color: Colors.black26, blurRadius: 8, offset: const Offset(0, 4)),
+              BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 8,
+                  offset: const Offset(0, 4)),
             ],
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text("⭐ Rate your Experience",
-                  style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+                  style: GoogleFonts.poppins(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white)),
               const SizedBox(height: 12),
               Text("Please rate your chat experience.",
-                  style: GoogleFonts.poppins(fontSize: 16, color: Colors.white70)),
+                  style:
+                      GoogleFonts.poppins(fontSize: 16, color: Colors.white70)),
               const SizedBox(height: 16),
               Obx(() => Wrap(
                     alignment: WrapAlignment.center,
@@ -219,7 +215,9 @@ class ChatWithExpertController extends GetxController {
                       5,
                       (index) => IconButton(
                         icon: Icon(
-                          index < selectedRating.value ? Icons.star : Icons.star_border,
+                          index < selectedRating.value
+                              ? Icons.star
+                              : Icons.star_border,
                           color: Colors.orangeAccent,
                           size: 36,
                         ),
@@ -233,12 +231,15 @@ class ChatWithExpertController extends GetxController {
                 children: [
                   TextButton(
                     onPressed: () => Get.back(),
-                    child: Text("Later", style: GoogleFonts.poppins(color: Colors.white70)),
+                    child: Text("Later",
+                        style:
+                            GoogleFonts.poppins(color: Colors.white70)),
                   ),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.buttonBg,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
                     ),
                     onPressed: () {
                       if (selectedRating.value == 0) {
@@ -249,7 +250,8 @@ class ChatWithExpertController extends GetxController {
                       submitRating(selectedRating.value);
                     },
                     child: Text("Submit",
-                        style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: Colors.white)),
+                        style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.bold, color: Colors.white)),
                   ),
                 ],
               )
@@ -260,18 +262,13 @@ class ChatWithExpertController extends GetxController {
       barrierDismissible: false,
     );
   }
- 
+
+  /// SUBMIT RATING
   Future<void> submitRating(int rating) async {
     try {
       final token = box.read("token");
-
       if (token == null) {
         Fluttertoast.showToast(msg: "Please login again");
-        return;
-      }
-
-      if (receiverId == 0) {
-        Fluttertoast.showToast(msg: "Expert not selected");
         return;
       }
 
@@ -283,7 +280,7 @@ class ChatWithExpertController extends GetxController {
           "Accept": "application/json",
         },
         body: {
-          "expert_id": receiverId.toString(), // ✅ Use stored receiverId
+          "expert_id": receiverId.toString(),
           "rating": rating.toString(),
         },
       );
@@ -298,12 +295,8 @@ class ChatWithExpertController extends GetxController {
       }
     } catch (e) {
       Fluttertoast.showToast(msg: "Error submitting rating");
-      print("Error submitting rating: $e");
     }
   }
-
-  // Add verifyPayment & _capturePayment methods here if needed
-
 
   /// VERIFY PAYMENT
   Future<void> verifyPayment({
@@ -346,16 +339,6 @@ class ChatWithExpertController extends GetxController {
           backgroundColor: Colors.green.shade600,
           textColor: Colors.white,
         );
-      } else if (data['message']
-          .toString()
-          .toLowerCase()
-          .contains("authorized")) {
-        Fluttertoast.showToast(
-            msg: "⚠ Authorized, capturing...",
-            backgroundColor: Colors.orange.shade600);
-        if (amount != null) {
-          await _capturePayment(paymentId, expertId, token, amount);
-        }
       } else {
         Fluttertoast.showToast(
           msg: "❌ ${data['message']}",
@@ -364,48 +347,6 @@ class ChatWithExpertController extends GetxController {
       }
     } catch (e) {
       Fluttertoast.showToast(msg: "Error verifying payment: $e");
-    }
-  }
-
-  /// CAPTURE PAYMENT (fallback)
-  Future<void> _capturePayment(
-      String paymentId, String expertId, String token, String amount) async {
-    try {
-      var headers = {
-        'Authorization': 'Bearer $token',
-        'Accept': 'application/json',
-        'Content-Type': 'application/x-www-form-urlencoded',
-      };
-
-      var request = http.Request(
-        'POST',
-        Uri.parse(
-            'https://kotiboxglobaltech.com/travel_app/api/capture-payment'),
-      );
-
-      request.headers.addAll(headers);
-      request.bodyFields = {
-        'payment_id': paymentId,
-        'amount': (double.parse(amount) * 100).toInt().toString(),
-      };
-
-      var response = await request.send();
-      var body = await response.stream.bytesToString();
-      var data = jsonDecode(body);
-
-      if (response.statusCode == 200 &&
-          data['status'] == true &&
-          data['payment']['status'] == 'captured') {
-        Fluttertoast.showToast(
-            msg: "✅ Payment captured successfully",
-            backgroundColor: Colors.green.shade600);
-      } else {
-        Fluttertoast.showToast(
-            msg: "❌ Failed to capture payment",
-            backgroundColor: Colors.red.shade600);
-      }
-    } catch (e) {
-      Fluttertoast.showToast(msg: "Error capturing payment: $e");
     }
   }
 }

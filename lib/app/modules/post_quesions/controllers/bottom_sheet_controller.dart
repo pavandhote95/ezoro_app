@@ -19,9 +19,12 @@ class BottomSheetQuestionsController extends GetxController {
   final CommunityController communityController = Get.find<CommunityController>();
   final TextEditingController locationController = TextEditingController();
 
-  //  Search results for location
+  // Search results for location
   final RxList<String> searchResults = <String>[].obs;
   final RxBool isSearching = false.obs;
+
+  // ✅ Your Google API key here
+  static const String googleApiKey = '';
 
   // ------------------ Image Picker ------------------
   Future<void> pickImages() async {
@@ -50,7 +53,7 @@ class BottomSheetQuestionsController extends GetxController {
     }
   }
 
-  // ------------------ Fetch Locations from OpenStreetMap Nominatim ------------------
+  // ------------------ Fetch Locations from Google Places API ------------------
   Future<void> fetchLocations(String query) async {
     if (query.isEmpty) {
       searchResults.clear();
@@ -60,20 +63,25 @@ class BottomSheetQuestionsController extends GetxController {
     isSearching.value = true;
     try {
       final url = Uri.parse(
-        'https://nominatim.openstreetmap.org/search?q=${Uri.encodeComponent(query)}&format=json&addressdetails=1&limit=25',
+        'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${Uri.encodeComponent(query)}&key=$googleApiKey&types=geocode&language=en',
       );
-      final response = await http.get(url, headers: {
-        'User-Agent': 'MyTravelApp/1.0 (pavandhote95@gmail.com)',  // required by Nominatim
-      });
+
+      final response = await http.get(url);
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
-        final results = data.map<String>((place) {
-          final displayName = place['display_name'] ?? '';
-          return displayName;
-        }).toList();
+        final data = jsonDecode(response.body);
 
-        searchResults.assignAll(results);
+        if (data['status'] == 'OK') {
+          final predictions = data['predictions'] as List<dynamic>;
+          final results = predictions.map<String>((place) {
+            return place['description'] ?? '';
+          }).toList();
+          searchResults.assignAll(results);
+        } else {
+          searchResults.clear();
+          Get.snackbar('Error', 'No results: ${data['status']}',
+              backgroundColor: Colors.red, colorText: Colors.white);
+        }
       } else {
         Get.snackbar('Error', 'Failed to fetch locations: ${response.statusCode}',
             backgroundColor: Colors.red, colorText: Colors.white);
@@ -104,8 +112,7 @@ class BottomSheetQuestionsController extends GetxController {
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
         Get.back();
-  CustomToast.showErrorHome(Get.context!, "Post created successfully!");
-
+        CustomToast.showErrorHome(Get.context!, "Post created successfully!");
 
         try {
           await communityController.fetchPosts();
@@ -119,8 +126,7 @@ class BottomSheetQuestionsController extends GetxController {
         selectedLocation.value = '';
         selectedImages.clear();
       } else {
-        Get.snackbar(
-            'Error',
+        Get.snackbar('Error',
             'Failed to create post: ${response.statusCode} - ${response.reasonPhrase}',
             backgroundColor: Colors.red,
             colorText: Colors.white);
